@@ -1,19 +1,18 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Form from "@components/Form";
 
-const UpdatePrompt = () => {
-
+const UpdatePromptContent = () => {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const promptId = searchParams.get("id");
 
-  const [post, setPost] = useState({ prompt: "", tag: "", });
+  const [post, setPost] = useState({ prompt: "", tag: "" });
   const [submitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -21,7 +20,6 @@ const UpdatePrompt = () => {
       try {
         const response = await fetch(`/api/prompt/${promptId}`);
         const data = await response.json();
-
 
         setPost({
           prompt: data.prompt,
@@ -38,8 +36,6 @@ const UpdatePrompt = () => {
   const updatePrompt = async (e) => {
     e.preventDefault();
     try {
-      // setSubmitting(true);
-
       if (!promptId) throw new Error('Prompt ID not found');
       const response = await fetch(`/api/prompt/${promptId}`, {
         method: 'PATCH',
@@ -60,16 +56,24 @@ const UpdatePrompt = () => {
     } finally {
       setSubmitting(false);
     }
-  }
+  };
+
+  return (
+    <Form
+      type='Edit'
+      post={post}
+      setPost={setPost}
+      submitting={submitting}
+      handleSubmit={updatePrompt}
+    />
+  );
+};
+
+// Wrapper component with Suspense
+const UpdatePrompt = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <Form
-        type='Edit'
-        post={post}
-        setPost={setPost}
-        submitting={submitting}
-        handleSubmit={updatePrompt}
-      />
+      <UpdatePromptContent />
     </Suspense>
   );
 };
